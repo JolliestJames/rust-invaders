@@ -6,6 +6,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 
 const PLAYER_SPRITE: &str = "player_a_01.png";
 const PLAYER_SIZE: (f32, f32) = (144., 75.);
+const SPRITE_SCALE: f32 = 0.5;
 
 // endregion:   --- Asset Constants
 
@@ -43,8 +44,14 @@ fn setup_system(
     primary.position = WindowPosition::At(IVec2::new(2100, 0));
 
     // add player
+    let bottom = -win_h / 2.;
     commands.spawn(SpriteBundle {
         texture: asset_server.load(PLAYER_SPRITE),
+        transform: Transform {
+            translation: Vec3::new(0., bottom + PLAYER_SIZE.1 * SPRITE_SCALE / 2. + 5., 10.),
+            scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.),
+            ..default()
+        },
         ..default()
     });
 }
