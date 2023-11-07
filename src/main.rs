@@ -3,12 +3,18 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
 // region:      --- Asset Constants
-
 const PLAYER_SPRITE: &str = "player_a_01.png";
 const PLAYER_SIZE: (f32, f32) = (144., 75.);
 const SPRITE_SCALE: f32 = 0.5;
-
 // endregion:   --- Asset Constants
+
+// region:      --- Resources
+#[derive(Resource)]
+pub struct WinSize {
+    pub w: f32,
+    pub h: f32
+}
+// endregion:   --- Resources
 
 fn main() {
     App::new()
@@ -23,6 +29,7 @@ fn main() {
             ..default()
         }))
         .add_systems(Startup, setup_system)
+        .add_systems(PostStartup, player_spawn_system)
         .run()
 }
 
@@ -43,8 +50,17 @@ fn setup_system(
     // position window for development
     primary.position = WindowPosition::At(IVec2::new(2100, 0));
 
-    // add player
-    let bottom = -win_h / 2.;
+    let win_size = WinSize {w: win_w, h: win_h};
+    commands.insert_resource(win_size);
+
+}
+
+fn player_spawn_system (
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    win_size: Res<WinSize>
+) {
+    let bottom = -win_size.h / 2.;
     commands.spawn(SpriteBundle {
         texture: asset_server.load(PLAYER_SPRITE),
         transform: Transform {
