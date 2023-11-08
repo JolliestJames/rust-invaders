@@ -14,6 +14,11 @@ pub struct WinSize {
     pub w: f32,
     pub h: f32
 }
+
+#[derive(Resource)]
+struct GameTextures {
+    player: Handle<Image>,
+}
 // endregion:   --- Resources
 
 fn main() {
@@ -50,19 +55,25 @@ fn setup_system(
     // position window for development
     primary.position = WindowPosition::At(IVec2::new(2100, 0));
 
+    // Add WinSize resource
     let win_size = WinSize {w: win_w, h: win_h};
     commands.insert_resource(win_size);
 
+    // Add GameTextures resource
+    let game_textures = GameTextures {
+        player: asset_server.load(PLAYER_SPRITE)
+    };
+    commands.insert_resource(game_textures);
 }
 
 fn player_spawn_system (
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    game_textures: Res<GameTextures>,
     win_size: Res<WinSize>
 ) {
     let bottom = -win_size.h / 2.;
     commands.spawn(SpriteBundle {
-        texture: asset_server.load(PLAYER_SPRITE),
+        texture: game_textures.player.clone(),
         transform: Transform {
             translation: Vec3::new(0., bottom + PLAYER_SIZE.1 * SPRITE_SCALE / 2. + 5., 10.),
             scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.),
