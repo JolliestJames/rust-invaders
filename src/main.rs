@@ -1,6 +1,9 @@
 #![allow(unused)] // silence unused warnings while exploring 
 
 use bevy::{prelude::*, window::PrimaryWindow};
+use player::PlayerPlugin;
+
+mod player;
 
 // region:      --- Asset Constants
 const PLAYER_SPRITE: &str = "player_a_01.png";
@@ -33,8 +36,8 @@ fn main() {
             }),
             ..default()
         }))
+        .add_plugins(PlayerPlugin)
         .add_systems(Startup, setup_system)
-        .add_systems(PostStartup, player_spawn_system)
         .run()
 }
 
@@ -64,21 +67,4 @@ fn setup_system(
         player: asset_server.load(PLAYER_SPRITE)
     };
     commands.insert_resource(game_textures);
-}
-
-fn player_spawn_system (
-    mut commands: Commands,
-    game_textures: Res<GameTextures>,
-    win_size: Res<WinSize>
-) {
-    let bottom = -win_size.h / 2.;
-    commands.spawn(SpriteBundle {
-        texture: game_textures.player.clone(),
-        transform: Transform {
-            translation: Vec3::new(0., bottom + PLAYER_SIZE.1 * SPRITE_SCALE / 2. + 5., 10.),
-            scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.),
-            ..default()
-        },
-        ..default()
-    });
 }
