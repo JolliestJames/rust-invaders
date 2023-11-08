@@ -32,6 +32,29 @@ fn player_spawn_system (
         .insert(Velocity {x: 0., y: 0. });
 }
 
+fn player_fire_system(
+    mut commands: Commands,
+    keyboard: Res<Input<KeyCode>>,
+    game_textures: Res<GameTextures>,
+    query: Query<&Transform, With<Player>>,
+) {
+    if let Ok(player_tf) = query.get_single() {
+        keyboard.just_pressed(KeyCode::Space) {
+            let (x, y) = (player_tf.translation.x, player_tf.translation.y);
+
+            commands.spawn(SpriteBundle {
+                texture: game_textures.player_laser.clone(),
+                transform: Transform {
+                    translation: Vec3::new(x, y 0.),
+                    scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.),
+                    ..default()
+                },
+                ..default()
+            })
+        }
+    }
+}
+
 fn player_keyboard_event_system(
     keyboard: Res<Input<KeyCode>>,
     mut query: Query<&mut Velocity, With<Player>>
