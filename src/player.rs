@@ -7,7 +7,8 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PostStartup, player_spawn_system)
-        .add_systems(Update, player_movement_system);
+            .add_systems(Update, player_movement_system)
+            .add_systems(Update, player_keyboard_event_system);
     }
 }
 
@@ -17,17 +18,33 @@ fn player_spawn_system (
     win_size: Res<WinSize>
 ) {
     let bottom = -win_size.h / 2.;
-    commands.spawn(SpriteBundle {
-        texture: game_textures.player.clone(),
-        transform: Transform {
-            translation: Vec3::new(0., bottom + PLAYER_SIZE.1 * SPRITE_SCALE / 2. + 5., 10.),
-            scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.),
+    commands
+        .spawn(SpriteBundle {
+            texture: game_textures.player.clone(),
+            transform: Transform {
+                translation: Vec3::new(0., bottom + PLAYER_SIZE.1 * SPRITE_SCALE / 2. + 5., 10.),
+                scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.),
+                ..default()
+            },
             ..default()
-        },
-        ..default()
-    })
-    .insert(Player)
-    .insert(Velocity {x: 1., y: 0. });
+        })
+        .insert(Player)
+        .insert(Velocity {x: 0., y: 0. });
+}
+
+fn player_keyboard_event_system(
+    keyboard: Res<Input<KeyCode>>,
+    mut query: Query<&mut Velocity, With<Player>>
+) {
+    if let Ok(mut velocity) = query.get_single_mut() {
+        velocity.x = if keyboard.pressed(KeyCode::Left) {
+            -1.
+        } else if keyboard.pressed(KeyCode::Right) {
+            1.
+        } else {
+            0.
+        }
+    }
 }
 
 fn player_movement_system(mut query: Query<(&Velocity, &mut Transform), With<Player>>) {
