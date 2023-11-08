@@ -12,6 +12,11 @@ const PLAYER_SIZE: (f32, f32) = (144., 75.);
 const SPRITE_SCALE: f32 = 0.5;
 // endregion:   --- Asset Constants
 
+// region:      --- Game Constants
+const TIME_STEP: f32 = 1./60.;
+const BASE_SPEED: f32 = 500.;
+// endregion    --- Game Constants
+
 // region:      --- Resources
 #[derive(Resource)]
 pub struct WinSize {
