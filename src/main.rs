@@ -1,5 +1,6 @@
 #![allow(unused)] // silence unused warnings while exploring 
 
+use crate::components::{Player, Velocity, Movable};
 use bevy::{prelude::*, window::PrimaryWindow};
 use player::PlayerPlugin;
 
@@ -47,6 +48,7 @@ fn main() {
         }))
         .add_plugins(PlayerPlugin)
         .add_systems(Startup, setup_system)
+        .add_systems(Update, movable_system)
         .run()
 }
 
@@ -77,4 +79,16 @@ fn setup_system(
         player_laser: asset_server.load(PLAYER_LASER_SPRITE),
     };
     commands.insert_resource(game_textures);
+}
+
+fn movable_system(
+    mut commands: Commands,
+    win_size: Res<WinSize>,
+    mut query: Query<(Entity, &Velocity, &mut Transform, &Movable)>
+) {
+    for (entity, velocity, mut transform, movable) in query.iter_mut() {
+        let translation = &mut transform.translation;
+        translation.x += velocity.x * TIME_STEP * BASE_SPEED;
+        translation.y += velocity.y * TIME_STEP * BASE_SPEED;
+    }
 }
