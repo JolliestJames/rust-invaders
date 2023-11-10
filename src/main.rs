@@ -1,6 +1,6 @@
-#![allow(unused)] // silence unused warnings while exploring 
+#![allow(unused)] // silence unused warnings while exploring
 
-use crate::components::{Player, Velocity, Movable};
+use crate::components::{Movable, Player, Velocity};
 use bevy::{prelude::*, window::PrimaryWindow};
 use enemy::EnemyPlugin;
 use player::PlayerPlugin;
@@ -24,7 +24,7 @@ const ENEMY_LASER_SIZE: (f32, f32) = (17., 55.);
 // endregion:   --- Asset Constants
 
 // region:      --- Game Constants
-const TIME_STEP: f32 = 1./60.;
+const TIME_STEP: f32 = 1. / 60.;
 const BASE_SPEED: f32 = 500.;
 // endregion    --- Game Constants
 
@@ -32,7 +32,7 @@ const BASE_SPEED: f32 = 500.;
 #[derive(Resource)]
 pub struct WinSize {
     pub w: f32,
-    pub h: f32
+    pub h: f32,
 }
 
 #[derive(Resource)]
@@ -50,13 +50,13 @@ fn main() {
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 // position:
-                resolution: (600., 320.).into(),
+                resolution: (900., 480.).into(),
                 title: "Rust Invaders!".to_string(),
                 ..default()
             }),
             ..default()
         }))
-        .add_plugins(( PlayerPlugin, EnemyPlugin ))
+        .add_plugins((PlayerPlugin, EnemyPlugin))
         .add_systems(Startup, setup_system)
         .add_systems(Update, movable_system)
         .run()
@@ -80,7 +80,7 @@ fn setup_system(
     primary.position = WindowPosition::At(IVec2::new(2100, 0));
 
     // Add WinSize resource
-    let win_size = WinSize {w: win_w, h: win_h};
+    let win_size = WinSize { w: win_w, h: win_h };
     commands.insert_resource(win_size);
 
     // Add GameTextures resource
@@ -96,7 +96,7 @@ fn setup_system(
 fn movable_system(
     mut commands: Commands,
     win_size: Res<WinSize>,
-    mut query: Query<(Entity, &Velocity, &mut Transform, &Movable)>
+    mut query: Query<(Entity, &Velocity, &mut Transform, &Movable)>,
 ) {
     for (entity, velocity, mut transform, movable) in query.iter_mut() {
         let translation = &mut transform.translation;
