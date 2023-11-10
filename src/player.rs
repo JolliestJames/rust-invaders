@@ -1,5 +1,7 @@
-use crate::components::{Player, Velocity, Movable};
-use crate::{GameTextures, WinSize, PLAYER_SIZE, SPRITE_SCALE, TIME_STEP, BASE_SPEED};
+use crate::components::{FromPlayer, Movable, Player, SpriteSize, Velocity};
+use crate::{
+    GameTextures, WinSize, BASE_SPEED, PLAYER_LASER_SIZE, PLAYER_SIZE, SPRITE_SCALE, TIME_STEP,
+};
 use bevy::prelude::*;
 
 pub struct PlayerPlugin;
@@ -12,10 +14,10 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn player_spawn_system (
+fn player_spawn_system(
     mut commands: Commands,
     game_textures: Res<GameTextures>,
-    win_size: Res<WinSize>
+    win_size: Res<WinSize>,
 ) {
     let bottom = -win_size.h / 2.;
     commands
@@ -29,7 +31,10 @@ fn player_spawn_system (
             ..default()
         })
         .insert(Player)
-        .insert(Movable { auto_despawn: false })
+        .insert(SpriteSize::from(PLAYER_SIZE))
+        .insert(Movable {
+            auto_despawn: false,
+        })
         .insert(Velocity { x: 0., y: 0. });
 }
 
@@ -55,8 +60,10 @@ fn player_fire_system(
                         },
                         ..default()
                     })
+                    .insert(FromPlayer)
+                    .insert(SpriteSize::from(PLAYER_LASER_SIZE))
                     .insert(Movable { auto_despawn: true })
-                    .insert(Velocity {x: 0., y: 1. });
+                    .insert(Velocity { x: 0., y: 1. });
             };
 
             spawn_laser(x_offset);
@@ -67,7 +74,7 @@ fn player_fire_system(
 
 fn player_keyboard_event_system(
     keyboard: Res<Input<KeyCode>>,
-    mut query: Query<&mut Velocity, With<Player>>
+    mut query: Query<&mut Velocity, With<Player>>,
 ) {
     if let Ok(mut velocity) = query.get_single_mut() {
         velocity.x = if keyboard.pressed(KeyCode::Left) {
