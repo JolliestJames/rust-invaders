@@ -1,4 +1,4 @@
-use crate::components::{FromPlayer, Movable, Player, SpriteSize, Velocity};
+use crate::components::{FromPlayer, Movable, Player, SpriteSize, Velocity, Laser};
 use crate::{
     GameTextures, WinSize, BASE_SPEED, PLAYER_LASER_SIZE, PLAYER_SIZE, SPRITE_SCALE, TIME_STEP,
 };
@@ -30,6 +30,7 @@ fn player_spawn_system(
             },
             ..default()
         })
+        .insert(Laser)
         .insert(Player)
         .insert(SpriteSize::from(PLAYER_SIZE))
         .insert(Movable {
@@ -60,6 +61,7 @@ fn player_fire_system(
                         },
                         ..default()
                     })
+                    .insert(Laser)
                     .insert(FromPlayer)
                     .insert(SpriteSize::from(PLAYER_LASER_SIZE))
                     .insert(Movable { auto_despawn: true })
