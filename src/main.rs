@@ -1,7 +1,10 @@
 #![allow(unused)] // silence unused warnings while exploring
 
-use crate::components::{Movable, Player, Velocity, SpriteSize, Enemy, Laser, FromPlayer, Explosion, ExplosionTimer, ExplosionToSpawn};
-use bevy::{prelude::*, window::PrimaryWindow, sprite::collide_aabb::collide, utils::HashSet};
+use crate::components::{
+    Enemy, Explosion, ExplosionTimer, ExplosionToSpawn, FromPlayer, Laser, Movable, Player,
+    SpriteSize, Velocity,
+};
+use bevy::{prelude::*, sprite::collide_aabb::collide, utils::HashSet, window::PrimaryWindow};
 use enemy::EnemyPlugin;
 use player::PlayerPlugin;
 
@@ -67,7 +70,15 @@ fn main() {
         }))
         .add_plugins((PlayerPlugin, EnemyPlugin))
         .add_systems(Startup, setup_system)
-        .add_systems(Update, (movable_system, player_laser_hit_enemy_system, explosion_to_spawn_system, explosion_animation_system))
+        .add_systems(
+            Update,
+            (
+                movable_system,
+                player_laser_hit_enemy_system,
+                explosion_to_spawn_system,
+                explosion_animation_system,
+            ),
+        )
         .run()
 }
 
@@ -95,7 +106,14 @@ fn setup_system(
     commands.insert_resource(EnemyCount(0));
 
     let texture_handle = asset_server.load(EXPLOSION_SPRITE);
-    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(64., 64.), 4, 4, Some(Vec2::new(0., 0.)), Some(Vec2::new(0., 0.)));
+    let texture_atlas = TextureAtlas::from_grid(
+        texture_handle,
+        Vec2::new(64., 64.),
+        4,
+        4,
+        Some(Vec2::new(0., 0.)),
+        Some(Vec2::new(0., 0.)),
+    );
     let explosion = texture_atlases.add(texture_atlas);
 
     // Add GameTextures resource
@@ -149,7 +167,9 @@ fn player_laser_hit_enemy_system(
         let laser_scale = Vec2::from(laser_tf.scale.xy());
 
         for (enemy_entity, enemy_tf, enemy_size) in enemy_query.iter() {
-            if despawned_entities.contains(&enemy_entity) || despawned_entities.contains(&laser_entity) {
+            if despawned_entities.contains(&enemy_entity)
+                || despawned_entities.contains(&laser_entity)
+            {
                 continue;
             }
 
@@ -203,14 +223,14 @@ fn explosion_animation_system(
     mut query: Query<(Entity, &mut ExplosionTimer, &mut TextureAtlasSprite), With<Explosion>>,
 ) {
     for (entity, mut timer, mut sprite) in query.iter_mut() {
-       timer.0.tick(time.delta());
+        timer.0.tick(time.delta());
 
-       if timer.0.finished() {
+        if timer.0.finished() {
             sprite.index += 1;
 
             if sprite.index >= EXPLOSION_LEN {
                 commands.entity(entity).despawn();
             }
-       }
+        }
     }
 }
