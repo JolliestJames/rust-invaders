@@ -1,7 +1,9 @@
 use std::time::Duration;
 
-use crate::components::{Enemy, Movable, Velocity, SpriteSize, Laser, FromEnemy};
-use crate::{GameTextures, WinSize, EnemyCount, SPRITE_SCALE, ENEMY_SIZE, ENEMY_LASER_SIZE, ENEMY_MAX};
+use crate::components::{Enemy, FromEnemy, Laser, Movable, SpriteSize, Velocity};
+use crate::{
+    EnemyCount, GameTextures, WinSize, ENEMY_LASER_SIZE, ENEMY_MAX, ENEMY_SIZE, SPRITE_SCALE,
+};
 use bevy::prelude::*;
 use bevy::time::common_conditions::on_timer;
 use rand::{thread_rng, Rng};
@@ -11,9 +13,11 @@ pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         // app.add_systems(Update, enemy_spawn_system);
-        app
-            .add_systems(Update, enemy_spawn_system.run_if(on_timer(Duration::from_secs_f32(1.))))
-            .add_systems(Update, enemy_fire_system);
+        app.add_systems(
+            Update,
+            enemy_spawn_system.run_if(on_timer(Duration::from_secs_f32(1.))),
+        )
+        .add_systems(Update, enemy_fire_system.run_if(enemy_should_fire));
     }
 }
 
@@ -44,7 +48,15 @@ fn enemy_spawn_system(
             .insert(SpriteSize::from(ENEMY_SIZE));
 
         enemy_count.0 += 1;
-        }
+    }
+}
+
+fn enemy_should_fire() -> bool {
+    if thread_rng().gen_bool(1. / 60.) {
+        true
+    } else {
+        false
+    }
 }
 
 fn enemy_fire_system(
