@@ -1,7 +1,7 @@
 #![allow(unused)] // silence unused warnings while exploring
 
 use crate::components::{Movable, Player, Velocity, SpriteSize, Enemy, Laser, FromPlayer, Explosion, ExplosionTimer, ExplosionToSpawn};
-use bevy::{prelude::*, window::PrimaryWindow, sprite::collide_aabb::collide};
+use bevy::{prelude::*, window::PrimaryWindow, sprite::collide_aabb::collide, utils::HashSet};
 use enemy::EnemyPlugin;
 use player::PlayerPlugin;
 
@@ -29,6 +29,8 @@ const EXPLOSION_LEN: usize = 16;
 // region:      --- Game Constants
 const TIME_STEP: f32 = 1. / 60.;
 const BASE_SPEED: f32 = 500.;
+
+const ENEMY_MAX: u32 = 2;
 // endregion    --- Game Constants
 
 // region:      --- Resources
@@ -46,6 +48,9 @@ struct GameTextures {
     enemy_laser: Handle<Image>,
     explosion: Handle<TextureAtlas>,
 }
+
+#[derive(Resource)]
+struct EnemyCount(u32);
 // endregion:   --- Resources
 
 fn main() {
@@ -87,6 +92,7 @@ fn setup_system(
     // Add WinSize resource
     let win_size = WinSize { w: win_w, h: win_h };
     commands.insert_resource(win_size);
+    commands.insert_resource(EnemyCount(0));
 
     let texture_handle = asset_server.load(EXPLOSION_SPRITE);
     let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(64., 64.), 4, 4, Some(Vec2::new(0., 0.)), Some(Vec2::new(0., 0.)));
@@ -129,13 +135,24 @@ fn movable_system(
 
 fn player_laser_hit_enemy_system(
     mut commands: Commands,
+    mut enemy_count: ResMut<EnemyCount>,
     laser_query: Query<(Entity, &Transform, &SpriteSize), (With<Laser>, With<FromPlayer>)>,
     enemy_query: Query<(Entity, &Transform, &SpriteSize), With<Enemy>>,
 ) {
+    let mut despawned_entities: HashSet<Entity> = HashSet::new();
+
     for (laser_entity, laser_tf, laser_size) in laser_query.iter() {
+        if despawned_entities.contains(&laser_entity) {
+            continue;
+        }
+
         let laser_scale = Vec2::from(laser_tf.scale.xy());
 
         for (enemy_entity, enemy_tf, enemy_size) in enemy_query.iter() {
+            if despawned_entities.contains(&enemy_entity) || despawned_entities.contains(&laser_entity) {
+                continue;
+            }
+
             let enemy_scale = Vec2::from(enemy_tf.scale.xy());
 
             let collision = collide(
@@ -147,7 +164,11 @@ fn player_laser_hit_enemy_system(
 
             if let Some(_) = collision {
                 commands.entity(enemy_entity).despawn();
+                despawned_entities.insert(enemy_entity);
+                enemy_count.0 -= 1;
+
                 commands.entity(laser_entity).despawn();
+                despawned_entities.insert(laser_entity);
                 commands.spawn(ExplosionToSpawn(enemy_tf.translation.clone()));
             }
         }
