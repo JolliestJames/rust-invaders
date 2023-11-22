@@ -1,4 +1,4 @@
-use crate::components::{FromPlayer, Movable, Player, SpriteSize, Velocity, Laser};
+use crate::components::{FromPlayer, Laser, Movable, Player, SpriteSize, Velocity};
 use crate::{
     GameTextures, WinSize, BASE_SPEED, PLAYER_LASER_SIZE, PLAYER_SIZE, SPRITE_SCALE, TIME_STEP,
 };
