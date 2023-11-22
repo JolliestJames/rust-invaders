@@ -1,7 +1,7 @@
 #![allow(unused)] // silence unused warnings while exploring
 
-use crate::components::{Movable, Player, Velocity};
-use bevy::{prelude::*, window::PrimaryWindow};
+use crate::components::{Movable, Player, Velocity, SpriteSize, Enemy, Laser, FromPlayer};
+use bevy::{prelude::*, window::PrimaryWindow, sprite::collide_aabb::collide};
 use enemy::EnemyPlugin;
 use player::PlayerPlugin;
 
@@ -58,7 +58,7 @@ fn main() {
         }))
         .add_plugins((PlayerPlugin, EnemyPlugin))
         .add_systems(Startup, setup_system)
-        .add_systems(Update, movable_system)
+        .add_systems(Update, (movable_system, player_laser_hit_enemy_system))
         .run()
 }
 
@@ -112,6 +112,32 @@ fn movable_system(
             {
                 println!("->> despawn {entity:?}");
                 commands.entity(entity).despawn();
+            }
+        }
+    }
+}
+
+fn player_laser_hit_enemy_system(
+    mut commands: Commands,
+    laser_query: Query<(Entity, &Transform, &SpriteSize), (With<Laser>, With<FromPlayer>)>,
+    enemy_query: Query<(Entity, &Transform, &SpriteSize), With<Enemy>>,
+) {
+    for (laser_entity, laser_tf, laser_size) in laser_query.iter() {
+        let laser_scale = Vec2::from(laser_tf.scale.xy());
+
+        for (enemy_entity, enemy_tf, enemy_size) in enemy_query.iter() {
+            let enemy_scale = Vec2::from(enemy_tf.scale.xy());
+
+            let collision = collide(
+                laser_tf.translation,
+                laser_size.0 * laser_scale,
+                enemy_tf.translation,
+                enemy_size.0 * enemy_scale,
+            );
+
+            if let Some(_) = collision {
+                commands.entity(enemy_entity).despawn();
+                commands.entity(laser_entity).despawn();
             }
         }
     }
