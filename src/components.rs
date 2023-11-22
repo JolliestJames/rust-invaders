@@ -1,4 +1,8 @@
-use bevy::{prelude::{Component, Vec2}, math::Vec3, time::{Timer, TimerMode}};
+use bevy::{
+    math::Vec3,
+    prelude::{Component, Vec2},
+    time::{Timer, TimerMode},
+};
 
 // region:      --- Common Components
 #[derive(Component)]
