@@ -32,7 +32,7 @@ const EXPLOSION_LEN: usize = 16;
 
 // region:      --- Game Constants
 const TIME_STEP: f32 = 1. / 60.;
-const BASE_SPEED: f32 = 500.;
+const BASE_SPEED: f32 = 250.;
 
 const PLAYER_RESPAWN_DELAY: f64 = 2.;
 const ENEMY_MAX: u32 = 2;
