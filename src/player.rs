@@ -1,42 +1,59 @@
+use std::time::Duration;
+
 use crate::components::{FromPlayer, Laser, Movable, Player, SpriteSize, Velocity};
 use crate::{
-    GameTextures, WinSize, BASE_SPEED, PLAYER_LASER_SIZE, PLAYER_SIZE, SPRITE_SCALE, TIME_STEP,
+    GameTextures, WinSize, BASE_SPEED, PLAYER_LASER_SIZE, PLAYER_SIZE, SPRITE_SCALE, TIME_STEP, PLAYER_RESPAWN_DELAY, PlayerState,
 };
 use bevy::prelude::*;
+use bevy::time::common_conditions::on_timer;
 
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PostStartup, player_spawn_system)
-            .add_systems(Update, player_keyboard_event_system)
-            .add_systems(Update, player_fire_system);
+        app
+            .insert_resource(PlayerState::default())
+            .add_systems(Update, (
+                player_spawn_system.run_if(on_timer(Duration::from_secs_f32(0.5))),
+                player_keyboard_event_system,
+                player_fire_system
+            ));
     }
 }
 
 fn player_spawn_system(
     mut commands: Commands,
+    mut player_state: ResMut<PlayerState>,
+    time: Res<Time>,
     game_textures: Res<GameTextures>,
     win_size: Res<WinSize>,
 ) {
-    let bottom = -win_size.h / 2.;
-    commands
-        .spawn(SpriteBundle {
-            texture: game_textures.player.clone(),
-            transform: Transform {
-                translation: Vec3::new(0., bottom + PLAYER_SIZE.1 * SPRITE_SCALE / 2. + 5., 10.),
-                scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.),
+    let now = time.elapsed_seconds_f64();
+    let last_shot = player_state.last_shot;
+
+    if !player_state.on && (last_shot == -1. || now > last_shot + PLAYER_RESPAWN_DELAY) {
+        let bottom = -win_size.h / 2.;
+
+        commands
+            .spawn(SpriteBundle {
+                texture: game_textures.player.clone(),
+                transform: Transform {
+                    translation: Vec3::new(0., bottom + PLAYER_SIZE.1 * SPRITE_SCALE / 2. + 5., 10.),
+                    scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.),
+                    ..default()
+                },
                 ..default()
-            },
-            ..default()
-        })
-        .insert(Laser)
-        .insert(Player)
-        .insert(SpriteSize::from(PLAYER_SIZE))
-        .insert(Movable {
-            auto_despawn: false,
-        })
-        .insert(Velocity { x: 0., y: 0. });
+            })
+            .insert(Laser)
+            .insert(Player)
+            .insert(SpriteSize::from(PLAYER_SIZE))
+            .insert(Movable {
+                auto_despawn: false,
+            })
+            .insert(Velocity { x: 0., y: 0. });
+
+        player_state.spawned();
+    }
 }
 
 fn player_fire_system(
